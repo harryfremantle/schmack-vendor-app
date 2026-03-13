@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
-import { setEmployeeAssignments } from "@/app/actions/assignments";
+import { setVendorAssignments } from "@/app/actions/assignments";
 import { useRouter } from "next/navigation";
 type VendorOption = { id: string; name: string; tagNames: string[]; assigned: boolean };
 export function EmployeeAssignmentPanel({ employeeId, vendors }: { employeeId: string; vendors: VendorOption[] }) {
