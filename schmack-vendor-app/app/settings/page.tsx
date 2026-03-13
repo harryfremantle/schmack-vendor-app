@@ -1,0 +1,5 @@
+import { db } from "@/lib/db";
+export default async function SettingsPage() {
+  const settings = await db.appSetting.findFirst(); const rates = await db.exchangeRateCache.findMany({ orderBy: { fetchedAt: "desc" }, take: 12 });
+  return <div className="space-y-6"><div><h2 className="text-2xl font-semibold">Settings</h2><p className="text-sm text-slate-500">Manage reporting currency and FX refresh visibility.</p></div><div className="grid gap-6 lg:grid-cols-[1fr_1fr]"><div className="rounded-2xl border bg-white p-5"><h3 className="mb-4 font-semibold">Reporting</h3><div className="rounded-xl border p-4 text-sm">Default reporting currency: <span className="font-medium">{settings?.defaultReportingCurrency ?? "EUR"}</span></div></div><div className="rounded-2xl border bg-white p-5"><h3 className="mb-4 font-semibold">FX Cache</h3><div className="space-y-2 text-sm">{rates.map((rate) => <div key={rate.id} className="flex items-center justify-between rounded-xl border p-3"><span>{rate.baseCurrency} → {rate.quoteCurrency}</span><span>{String(rate.rate)}</span></div>)}</div></div></div></div>;
+}
