@@ -27,12 +27,25 @@ enum AssignmentStatus {
   REMOVED
 }
 
+model Country {
+  id        String     @id @default(cuid())
+  name      String
+  employees Employee[]
+}
+
 model Team {
   id        String     @id @default(cuid())
-  name      String     @unique
-  employees Employee[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  name      String
+  members   EmployeeTeam[]
+}
+
+model EmployeeTeam {
+  id         String   @id @default(cuid())
+  employeeId String
+  teamId     String
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model Employee {
@@ -40,32 +53,62 @@ model Employee {
   name        String
   email       String             @unique
   role        String?
-  teamId      String?
-  team        Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  countryId   String?
   status      RecordStatus       @default(ACTIVE)
+
+  country     Country?           @relation(fields: [countryId], references: [id])
+  teams       EmployeeTeam[]
   assignments VendorAssignment[]
+
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 }
 
+model VendorOwner {
+  id      String   @id @default(cuid())
+  name    String
+  vendors Vendor[]
+}
+
+model Tag {
+  id    String      @id @default(cuid())
+  name  String      @unique
+  links VendorTag[]
+}
+
+model VendorTag {
+  id       String @id @default(cuid())
+  vendorId String
+  tagId    String
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+}
+
 model Vendor {
-  id                String             @id @default(cuid())
-  name              String             @unique
-  category          String?
-  website           String?
-  notes             String?
-  billingType       BillingType
-  billingCadence    BillingCadence
-  currency          String
-  fixedCost         Float?
-  costPerSeat       Float?
-  seats             Int?
-  renewalDate       DateTime?
-  owner             String?
-  status            RecordStatus       @default(ACTIVE)
-  assignments       VendorAssignment[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  name           String             @unique
+  category       String?
+  website        String?
+  notes          String?
+  billingType    BillingType
+  billingCadence BillingCadence
+  currency       String
+  fixedCost      Float?
+  costPerSeat    Float?
+  seats          Int?
+  renewalDate    DateTime?
+
+  ownerId        String?
+  owner          VendorOwner?      @relation(fields: [ownerId], references: [id])
+
+  status         RecordStatus      @default(ACTIVE)
+
+  tags           VendorTag[]
+  assignments    VendorAssignment[]
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 }
 
 model VendorAssignment {
@@ -73,13 +116,12 @@ model VendorAssignment {
   vendorId   String
   employeeId String
   status     AssignmentStatus @default(ACTIVE)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
 
   vendor     Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
   @@unique([vendorId, employeeId])
-  @@index([vendorId])
-  @@index([employeeId])
 }
