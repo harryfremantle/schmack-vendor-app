@@ -3,8 +3,11 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 export async function setVendorAssignments(vendorId: string, employeeIds: string[]) {
   const existing = await db.vendorAssignment.findMany({ where: { vendorId } });
-  const existingIds = new Set(existing.filter((a) => a.status === "ACTIVE").map((a) => a.employeeId));
-  const nextIds = new Set(employeeIds);
+  const existingIds = new Set(
+    existing
+      .filter((a: { status: string; employeeId: string }) => a.status === "ACTIVE")
+      .map((a: { status: string; employeeId: string }) => a.employeeId)
+  );  const nextIds = new Set(employeeIds);
   for (const assignment of existing) if (existingIds.has(assignment.employeeId) && !nextIds.has(assignment.employeeId)) await db.vendorAssignment.update({ where: { id: assignment.id }, data: { status: "REMOVED", removedAt: new Date() } });
   for (const employeeId of employeeIds) {
     const found = existing.find((a) => a.employeeId === employeeId);
