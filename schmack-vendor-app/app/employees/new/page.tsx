@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { EmployeeForm } from "@/components/forms/employee-form";
 import { db } from "@/lib/db";
 export default async function NewEmployeePage() {

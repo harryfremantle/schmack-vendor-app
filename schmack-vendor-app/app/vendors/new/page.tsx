@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { VendorForm } from "@/components/forms/vendor-form";
 import { db } from "@/lib/db";
 export default async function NewVendorPage() {

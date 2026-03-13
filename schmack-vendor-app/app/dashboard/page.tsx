@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getDashboardData } from "@/lib/queries/dashboard";
 import { formatMoney, formatDate } from "@/lib/format";
 export default async function DashboardPage() {

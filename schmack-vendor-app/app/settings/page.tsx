@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/lib/db";
 export default async function SettingsPage() {
   const settings = await db.appSetting.findFirst(); const rates = await db.exchangeRateCache.findMany({ orderBy: { fetchedAt: "desc" }, take: 12 });
