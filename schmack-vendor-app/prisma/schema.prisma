@@ -1,105 +1,85 @@
-generator client { provider = "prisma-client-js" }
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum BillingType { FIXED PER_SEAT }
-enum BillingCadence { MONTHLY ANNUAL }
-enum RecordStatus { ACTIVE ARCHIVED }
-enum AssignmentStatus { ACTIVE REMOVED }
-enum AllocationMode { NONE EQUAL_SPLIT }
+enum BillingType {
+  FIXED
+  PER_SEAT
+}
 
-model Vendor {
-  id             String              @id @default(cuid())
-  name           String
-  description    String?
-  ownerId        String?
-  owner          Employee?           @relation("VendorOwner", fields: [ownerId], references: [id])
-  billingType    BillingType
-  billingCadence BillingCadence
-  nativeCurrency String
-  fixedAmount    Decimal?
-  seatPrice      Decimal?
-  seatsPurchased Int?
-  renewalDate    DateTime?
-  allocationMode AllocationMode      @default(NONE)
-  status         RecordStatus        @default(ACTIVE)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  tags           VendorTagOnVendor[]
-  assignments    VendorAssignment[]
+enum BillingCadence {
+  MONTHLY
+  ANNUAL
 }
-model VendorTag {
-  id        String             @id @default(cuid())
-  name      String             @unique
-  color     String?
-  vendors   VendorTagOnVendor[]
-  createdAt DateTime           @default(now())
+
+enum RecordStatus {
+  ACTIVE
+  ARCHIVED
 }
-model VendorTagOnVendor {
-  vendorId String
-  tagId    String
-  vendor   Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  tag      VendorTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  @@id([vendorId, tagId])
+
+enum AssignmentStatus {
+  ACTIVE
+  REMOVED
 }
-model Employee {
-  id           String              @id @default(cuid())
-  name         String
-  email        String?             @unique
-  title        String?
-  countryId    String?
-  country      Country?            @relation(fields: [countryId], references: [id])
-  status       RecordStatus        @default(ACTIVE)
-  notes        String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  teams        EmployeeTeam[]
-  assignments  VendorAssignment[]
-  ownedVendors Vendor[]            @relation("VendorOwner")
-}
+
 model Team {
-  id        String         @id @default(cuid())
-  name      String         @unique
-  employees EmployeeTeam[]
-}
-model EmployeeTeam {
-  employeeId String
-  teamId     String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  @@id([employeeId, teamId])
-}
-model Country {
   id        String     @id @default(cuid())
-  code      String     @unique
   name      String     @unique
   employees Employee[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
+
+model Employee {
+  id          String             @id @default(cuid())
+  name        String
+  email       String             @unique
+  role        String?
+  teamId      String?
+  team        Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  status      RecordStatus       @default(ACTIVE)
+  assignments VendorAssignment[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model Vendor {
+  id                String             @id @default(cuid())
+  name              String             @unique
+  category          String?
+  website           String?
+  notes             String?
+  billingType       BillingType
+  billingCadence    BillingCadence
+  currency          String
+  fixedCost         Float?
+  costPerSeat       Float?
+  seats             Int?
+  renewalDate       DateTime?
+  owner             String?
+  status            RecordStatus       @default(ACTIVE)
+  assignments       VendorAssignment[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
 model VendorAssignment {
   id         String           @id @default(cuid())
   vendorId   String
   employeeId String
   status     AssignmentStatus @default(ACTIVE)
-  assignedAt DateTime         @default(now())
-  removedAt  DateTime?
-  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
   vendor     Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
   @@unique([vendorId, employeeId])
-}
-model ExchangeRateCache {
-  id            String   @id @default(cuid())
-  baseCurrency  String
-  quoteCurrency String
-  rate          Decimal
-  fetchedAt     DateTime @default(now())
-  @@unique([baseCurrency, quoteCurrency])
-}
-model AppSetting {
-  id                       String   @id @default(cuid())
-  defaultReportingCurrency String   @default("EUR")
-  updatedAt                DateTime @updatedAt
+  @@index([vendorId])
+  @@index([employeeId])
 }
